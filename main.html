@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>植栽採点アプリ</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</head>
+<body>
+<div id="app">
+   <!-- 画面 START -->
+    <el-row>
+        <el-col :span="24" style="text-align:center">
+            <h2><% result %></h2>
+            <!-- 撮影画像 -->
+            <el-button-group>
+                <el-button @click="changeCamera" icon="el-icon-refresh"></el-button>
+            </el-button-group>
+            <p><video id="myVideo" width="100%" height="450" autoplay playsinline="true"></video></p>
+            <p><canvas id="myCanvas" style="display:none"></canvas></p>
+            <p>
+                <el-button-group>
+                    <el-button @click="sendImage" :loading="buttonLoading" icon="el-icon-camera">撮影</el-button>
+                </el-button-group>
+            </p>
+            <!--
+            <p>
+                <el-upload
+                action="/upload"
+                :on-change="handleChange"
+                :on-success="handleSuccess"
+                :file-list="fileList"
+                list-type="picture">
+                    <el-button icon="el-icon-picture-outline">Click to upload</el-button>
+                </el-upload>
+            </p>
+            -->
+        </el-col>
+    </el-row>
+    <!-- 画面 END -->
+</div>
+<!-- ここからはJavascript -->
+<script src="https://cdn.jsdelivr.net/npm/vue@2.7.10/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    var app = new Vue({
+      el: '#app',
+      data: function() {
+        return {
+            buttonLoading: false,
+            result:'',
+            fileList:[],
+            cameraMode:'user'
+        }
+      },
+      delimiters: ["<%","%>"],
+      methods: {
+        handleChange:function(file, fileList){
+            this.fileList = fileList.slice(-1);
+        },
+        changeCamera:function() {
+            this.cameraMode = (this.cameraMode === 'user') ? 'environment' : 'user';
+            this.initCamera();
+        },
+        initCamera:function() {
+            //ストリーム作成とカメラ画像のストリーミング開始
+            let mode = (this.cameraMode == 'user') ? 'user' : { exact: "environment" };
+            //alert(mode);
+            const constraints = {facingMode: mode};
+            //すでにストリーミングされていたら停止する
+            if( video.srcObject !== null ){
+                video.srcObject.getVideoTracks().forEach( (camera) => {
+                    camera.stop();
+                });
+            }
+            const promise = navigator.mediaDevices.getUserMedia({video: constraints,audio: false});
+            promise.then(function(stream){
+                video.srcObject = stream;
+                //video.play();
+            }).catch(function(err){
+                this.result = err;
+                console.log(err);
+            });
+        },
+        sendImage: function() {
+            this.buttonLoading = true;
+            this.result="...判定中...";
+            video.pause();                                                // ビデオ停止
+            var canvas_image = ctx.drawImage(video, 0, 0, canvas.width, canvas.height);          // カメラ→imgに変換
+
+            var dataURL = canvas.toDataURL("image/jpeg");    // DataURLに変換
+            var img_base64 = dataURL.replace(/^.*,/, '');    // プレフィックスを削除してBase64部分だけ取り出し
+            var param = {image:img_base64};
+            axios.post('/picture', param
+                ).then(response => {
+                    this.handleSuccess(response.data);
+                }).catch(error => {//エラー処理
+                    console.log("post failed"+error);
+                });
+        },
+        handleSuccess: function(data,file,fileList) {
+            console.log(JSON.stringify(data));
+            let buf = '';
+            //クラス分類結果を表示
+            //if (data.class) {
+            //    for (let i=0; i<data.class.length;i++) {
+            //        buf += " " + data.class[i].class + "("+data.class[i].score+")";   
+            //    }
+            //}
+            //buf = buf.replace("honten","山本屋本店").replace("sohonke","山本屋総本家")
+            //this.result = buf;
+            this.result = data.class;
+            this.buttonLoading = false;
+            video.play();
+        } 
+      }
+    })
+    //------------------------//
+    //初期化
+    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+    window.URL = window.URL || window.webkitURL; 
+    //カメラ入力
+    var video = document.getElementById('myVideo');
+    //中間出力
+    var canvas = document.getElementById('myCanvas');
+    var ctx = canvas.getContext('2d');
+    app.initCamera();
+
+</script>
+</body>
+</html>

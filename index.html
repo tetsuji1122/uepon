@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>植栽採点アプリ</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</head>
+<body style="background-color: #ABD1B1;">
+<div id="app">
+
+    <el-row>
+        <el-col :span="24" style="height: 500px;"></el-col>
+    </el-row>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <el-row>
+        <el-col :span="4"><p></p></el-col>
+        <el-col :span="16" style="text-align: center;"><a href="https://line-bot-ishii.herokuapp.com/main/"><img src="img/top_button.png" width="200"></a></el-col>
+        <el-col :span="4"><p></p></el-col>
+    </el-row>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.7.10/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+    var app = new Vue({
+      el: '#app',
+      data: function() {
+        return {
+            result:'',
+        }
+      },
+      methods: {
+      }
+    })
+
+</script>
+
+</body>
+</html>
