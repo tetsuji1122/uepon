@@ -7,23 +7,25 @@
     <meta name='viewport' content='width=device-width, initial-scale=1'>
     <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
 </head>
-<body>
+<body style="background-color: #ABD1B1;">
 <div id="app">
    <!-- 画面 START -->
     <el-row>
         <el-col :span="24" style="text-align:center">
             <h2><% result %></h2>
             <!-- 撮影画像 -->
-            <el-button-group>
-                <el-button @click="changeCamera" icon="el-icon-refresh"></el-button>
-            </el-button-group>
-            <p><video id="myVideo" width="100%" height="450" autoplay playsinline="true"></video></p>
-            <p><canvas id="myCanvas" style="display:none"></canvas></p>
+            <p style="width:100%">
+                <el-col :span="20" style="text-align:right"><el-button @click="changeCamera" icon="el-icon-refresh" type="text" style="z-index:2; position:absolute"></el-button></el-col><el-col :span="4"></el-col>
+                <video id="myVideo" width="100%" height="450" autoplay playsinline="true" style="z-index:1"></video>
+            </p>
+            <p><canvas id="myCanvas" style="display:contents" style="z-index:1"></canvas></p>
             <p>
                 <el-button-group>
                     <el-button @click="sendImage" :loading="buttonLoading" icon="el-icon-camera">撮影</el-button>
+                    <el-button @click="clear" icon="el-icon-clear">クリア</el-button>
                 </el-button-group>
             </p>
+
             <!--
             <p>
                 <el-upload
@@ -50,9 +52,9 @@
       data: function() {
         return {
             buttonLoading: false,
-            result:'',
+            result:'撮影してください',
             fileList:[],
-            cameraMode:'user'
+            cameraMode:'environment'
         }
       },
       delimiters: ["<%","%>"],
@@ -62,6 +64,7 @@
         },
         changeCamera:function() {
             this.cameraMode = (this.cameraMode === 'user') ? 'environment' : 'user';
+            //alert(this.cameraMode);
             this.initCamera();
         },
         initCamera:function() {
@@ -104,17 +107,36 @@
             console.log(JSON.stringify(data));
             let buf = '';
             //クラス分類結果を表示
-            //if (data.class) {
-            //    for (let i=0; i<data.class.length;i++) {
-            //        buf += " " + data.class[i].class + "("+data.class[i].score+")";   
-            //    }
-            //}
-            //buf = buf.replace("honten","山本屋本店").replace("sohonke","山本屋総本家")
-            //this.result = buf;
-            this.result = data.class;
+            if (data.localizedObjectAnnotations) {
+               let arr = data.localizedObjectAnnotations;
+               for (let i=0; i<arr.length;i++) {
+                   let score = Math.round(arr[i].score*100)
+                   buf += " " + arr[i].name + "("+score+"点)";   
+               }
+            }
+            if (data.labelAnnotations) {
+               let arr = data.labelAnnotations;
+               for (let i=0; i<arr.length;i++) {
+                   let score = Math.round(arr[i].score*100)
+                   buf += " " + arr[i].description + "("+score+"点)";   
+               }
+            }
+            this.result = buf;
+            this.drawRect();
             this.buttonLoading = false;
+            //video.play();
+        },
+        drawRect: function(rect){
+            ctx.beginPath();
+            ctx.rect( 20, 20,80, 80);
+            ctx.strokeStyle = 'deepskyblue';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+        },
+        clear: function(){
+            this.result = '撮影してください';
             video.play();
-        } 
+        }
       }
     })
     //------------------------//
