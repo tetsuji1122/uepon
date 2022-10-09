@@ -7,7 +7,7 @@
     <meta name='viewport' content='width=device-width, initial-scale=1'>
     <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
 </head>
-<body style="background-color: #ABD1B1;">
+<body style="background-color: #C4F4F8;">
 <div id="app">
    <!-- 画面 START -->
     <el-row>
@@ -25,19 +25,8 @@
                     <el-button @click="clear" icon="el-icon-clear">クリア</el-button>
                 </el-button-group>
             </p>
-
-            <!--
-            <p>
-                <el-upload
-                action="/upload"
-                :on-change="handleChange"
-                :on-success="handleSuccess"
-                :file-list="fileList"
-                list-type="picture">
-                    <el-button icon="el-icon-picture-outline">Click to upload</el-button>
-                </el-upload>
-            </p>
-            -->
+            <div style="position:absolute;padding: 10px 10px 15px;"><span><% comment %></span></div>
+            <img src="https://tetsuji1122.github.io/uepon/img/Back_balloon.png" width="80%">
         </el-col>
     </el-row>
     <!-- 画面 END -->
@@ -54,7 +43,8 @@
             buttonLoading: false,
             result:'撮影してください',
             fileList:[],
-            cameraMode:'environment'
+            cameraMode:'environment',
+            comment:''
         }
       },
       delimiters: ["<%","%>"],
@@ -106,6 +96,7 @@
         handleSuccess: function(data,file,fileList) {
             console.log(JSON.stringify(data));
             let buf = '';
+            let point = 0;
             //クラス分類結果を表示
             if (data.localizedObjectAnnotations) {
                let arr = data.localizedObjectAnnotations;
@@ -117,12 +108,14 @@
             if (data.labelAnnotations) {
                let arr = data.labelAnnotations;
                for (let i=0; i<arr.length;i++) {
-                   let score = Math.round(arr[i].score*100)
-                   buf += " " + arr[i].description + "("+score+"点)";   
+                   let score = Math.round(arr[i].score*100);
+                   buf += " " + arr[i].description + "("+score+"点)"; 
+                   if (point < score) point = score;
                }
             }
-            this.result = buf;
-            this.drawRect();
+            this.result = point+"点です";
+            this.comment = buf;
+            //this.drawRect();
             this.buttonLoading = false;
             //video.play();
         },
